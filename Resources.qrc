@@ -1,0 +1,31 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/monkey.gif</file>
+        <file>images/Whipattack.gif</file>
+        <file>images/barrel.png</file>
+        <file>images/fallleft.gif</file>
+        <file>images/fallright.gif</file>
+        <file>images/artifact.png</file>
+        <file>images/back.png</file>
+        <file>images/platform.png</file>
+        <file>images/ladder.png</file>
+        <file>images/PlayerUp.png</file>
+        <file>images/Move_left.gif</file>
+        <file>images/Move_right.gif</file>
+        <file>images/Player.png</file>
+        <file>images/Monkey.png</file>
+        <file>Sounds/grunt.wav</file>
+        <file>Sounds/prefall.wav</file>
+        <file>Sounds/hammerhit.wav</file>
+        <file>Sounds/die.wav</file>
+        <file>Sounds/point.wav</file>
+        <file>Sounds/fall.wav</file>
+        <file>Sounds/springcoin.wav</file>
+        <file>Sounds/thump.wav</file>
+        <file>Sounds/jump.wav</file>
+        <file>Sounds/walk.wav</file>
+        <file>images/arena.png</file>
+        <file>images/boss_stance.png</file>
+        <file>images/player_stance.png</file>
+    </qresource>
+</RCC>

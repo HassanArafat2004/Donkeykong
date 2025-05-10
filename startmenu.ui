@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>StartMenu</class>
+ <widget class="QWidget" name="StartMenu">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Start Menu</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+    background-color: #1a1a1a;
+}
+
+QPushButton {
+    background-color: #4a4a4a;
+    color: white;
+    border: 2px solid #666666;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 200px;
+    min-height: 50px;
+}
+
+QPushButton:hover {
+    background-color: #666666;
+    border-color: #888888;
+}
+
+QPushButton:pressed {
+    background-color: #333333;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>200</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel" name="titleLabel">
+     <property name="styleSheet">
+      <string notr="true">color: white;
+font-size: 48px;
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>Monkey Mayhem</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>100</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QPushButton" name="startButton">
+     <property name="minimumSize">
+      <size>
+       <width>224</width>
+       <height>74</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Start Game</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="shopButton">
+     <property name="minimumSize">
+      <size>
+       <width>224</width>
+       <height>74</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Shop</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="exitButton">
+     <property name="minimumSize">
+      <size>
+       <width>224</width>
+       <height>74</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Exit</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>200</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
