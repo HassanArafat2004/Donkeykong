@@ -13,18 +13,20 @@ public:
     ~Barrel();
 
 public slots:
-    void move();
+    virtual void move();
     void updateAnimation();
 
-private:
+protected:
     int dx;
     int dy;
     double dz;
     bool falling;
     bool fallTriggered;
     int currentPlatformY;
+    void updatePlatformLevel();
+    void updateState();
 
-
+private:
     enum class State {
         RollLeft,
         RollRight,
@@ -33,14 +35,10 @@ private:
     };
     State currentState;
 
-
     QMovie *rollLeftAnimation;
     QMovie *rollRightAnimation;
     QMovie *fallLeftAnimation;
     QMovie *fallRightAnimation;
-
-    void updatePlatformLevel();
-    void updateState();
 };
 
 #endif // BARREL_H

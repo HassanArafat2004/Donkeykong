@@ -10,8 +10,10 @@
 #include "player.h"
 #include "artifact.h"
 #include "bossfight.h"
-#include "retrybutton.h"
 #include "startmenu.h"
+#include "gameoverscreen.h"
+#include "victoryscreen.h"
+#include "fastbarrel.h"
 
 class MainWindow : public QMainWindow
 {
@@ -42,13 +44,15 @@ protected:
 private:
     QGraphicsView *view;
     QGraphicsScene *level1Scene;
-    QGraphicsScene *gameOverScene;
-    QGraphicsScene *victoryScene;
+    QGraphicsScene *level2Scene;
     QGraphicsScene *shopScene;
     QGraphicsScene *bossFightScene;
+    QGraphicsScene *gameOverScene;    // Scene for game over screen
+    QGraphicsScene *victoryScene;     // Scene for victory screen
 
     StartMenu *startMenu;
-    RetryButton *retryButton;
+    GameOverScreen *gameOverScreen;
+    VictoryScreen *victoryScreen;
     QPushButton *buyInvincibilityButton;
 
     QGraphicsTextItem *livesDisplay;
@@ -63,7 +67,9 @@ private:
     bool isInvincible;
 
     void setupLevel1Scene();
+    void setupLevel2Scene();
     void setupShopScene();
+    void cleanup(QGraphicsScene* scene);
     void resetGame();
 };
 

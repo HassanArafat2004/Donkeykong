@@ -14,11 +14,15 @@
 #include <QGraphicsItemAnimation>
 #include <QGraphicsView>
 #include <QMovie>
+#include <QPointer>
+#include <QApplication>
 
 BossFight::BossFight(QGraphicsScene *scene, int level, QObject *parent)
     : QObject(parent), scene(scene), level(level), currentState(BossState::INTRO),
     isTransitioning(false), currentAnimation(nullptr), playerSprite(nullptr), bossSprite(nullptr),
-    whipAttackAnimation(nullptr), whipAttackSprite(nullptr)
+    whipAttackAnimation(nullptr), whipAttackSprite(nullptr), bossHealthDisplay(nullptr),
+    playerHealthDisplay(nullptr), sequenceDisplay(nullptr), vsText(nullptr),
+    backgroundOverlay(nullptr), background(nullptr)
 {
     bossHealth = 100;
     playerHealth = 100;
@@ -157,39 +161,53 @@ void BossFight::onCorrectSequence()
 
 void BossFight::onWrongButton()
 {
+    if (isTransitioning) return;
+
     if (currentSequenceIndex < sequenceIndicators.size()) {
         auto currentIndicator = sequenceIndicators[currentSequenceIndex];
-        
-        currentIndicator->setDefaultTextColor(Qt::red);
-        currentIndicator->setFont(QFont("Arial", 32, QFont::Bold));
-        
-        QSequentialAnimationGroup *shakeGroup = new QSequentialAnimationGroup(this);
-        QPropertyAnimation *shakeAnim = new QPropertyAnimation(currentIndicator, "pos");
-        shakeAnim->setDuration(100);
-        
-        QPointF originalPos = currentIndicator->pos();
-        for (int i = 0; i < 6; i++) {
-            shakeAnim->setKeyValueAt(i/6.0, originalPos + QPointF((i % 2) * 10 - 5, 0));
-        }
-        shakeAnim->setKeyValueAt(1, originalPos);
-        
-        shakeGroup->addAnimation(shakeAnim);
-        shakeGroup->start(QAbstractAnimation::DeleteWhenStopped);
-        
-        QTimer::singleShot(300, [this, currentIndicator]() {
-            if (currentIndicator) {
-                currentIndicator->setDefaultTextColor(Qt::yellow);
-                currentIndicator->setFont(QFont("Arial", 28, QFont::Bold));
+        if (currentIndicator) {
+            currentIndicator->setDefaultTextColor(Qt::red);
+            currentIndicator->setFont(QFont("Arial", 32, QFont::Bold));
+            
+            QSequentialAnimationGroup *shakeGroup = new QSequentialAnimationGroup(this);
+            QPropertyAnimation *shakeAnim = new QPropertyAnimation(currentIndicator, "pos");
+            shakeAnim->setDuration(100);
+            
+            QPointF originalPos = currentIndicator->pos();
+            for (int i = 0; i < 6; i++) {
+                shakeAnim->setKeyValueAt(i/6.0, originalPos + QPointF((i % 2) * 10 - 5, 0));
             }
-        });
+            shakeAnim->setKeyValueAt(1, originalPos);
+            
+            shakeGroup->addAnimation(shakeAnim);
+            shakeGroup->start(QAbstractAnimation::DeleteWhenStopped);
+            
+            // Store a weak pointer to the indicator
+            QPointer<QGraphicsTextItem> weakIndicator = currentIndicator;
+            QTimer::singleShot(300, this, [this, weakIndicator]() {
+                if (!weakIndicator.isNull() && weakIndicator->scene()) {
+                    weakIndicator->setDefaultTextColor(Qt::yellow);
+                    weakIndicator->setFont(QFont("Arial", 28, QFont::Bold));
+                }
+            });
+        }
     }
     
     playerHealth -= getPlayerDamage();
     updateHealthDisplays();
-    playAttackAnimation(false);
+    
+    // Only play attack animation if we're not transitioning to game over
+    if (playerHealth > 0) {
+        playAttackAnimation(false);
+    }
     
     if (playerHealth <= 0) {
-        emit gameOver();
+        // Ensure health doesn't go below 0 for display purposes
+        playerHealth = 0;
+        updateHealthDisplays();
+        
+        // Transition to defeat state
+        transitionToState(BossState::DEFEAT);
     }
 }
 
@@ -302,28 +320,81 @@ void BossFight::updateHealthDisplays()
 
 void BossFight::cleanup()
 {
+    // Stop any ongoing animations first
+    if (currentAnimation) {
+        currentAnimation->stop();
+        delete currentAnimation;
+        currentAnimation = nullptr;
+    }
+    
+    if (whipAttackAnimation) {
+        whipAttackAnimation->stop();
+        delete whipAttackAnimation;
+        whipAttackAnimation = nullptr;
+    }
+
+    // Clear sequences and indicators
+    buttonSequence.clear();
     clearSequenceIndicators();
     
-    QList<QGraphicsItem*> itemsToRemove = {
-        bossHealthDisplay, playerHealthDisplay, sequenceDisplay
+    // Clean up UI elements only if they're still in the scene
+    QList<QGraphicsItem*> itemsToRemove;
+    
+    auto addIfValid = [this, &itemsToRemove](QGraphicsItem* item) {
+        if (item && item->scene() == scene) {
+            itemsToRemove.append(item);
+        }
     };
+    
+    addIfValid(bossHealthDisplay);
+    addIfValid(playerHealthDisplay);
+    addIfValid(sequenceDisplay);
+    addIfValid(vsText);
+    addIfValid(playerSprite);
+    addIfValid(bossSprite);
+    addIfValid(whipAttackSprite);
+    addIfValid(backgroundOverlay);
+    addIfValid(background);
 
-    for (auto bar : bossHealthBars) {
-        itemsToRemove.append(bar);
-    }
-    for (auto bar : playerHealthBars) {
-        itemsToRemove.append(bar);
+    // Remove and delete items
+    for (auto item : itemsToRemove) {
+        scene->removeItem(item);
+        delete item;
     }
     
-    for (auto item : itemsToRemove) {
-        if (item) {
-            scene->removeItem(item);
-            delete item;
+    // Clean up health bars
+    for (auto bar : bossHealthBars) {
+        if (bar && bar->scene() == scene) {
+            scene->removeItem(bar);
+            delete bar;
         }
     }
     
+    for (auto bar : playerHealthBars) {
+        if (bar && bar->scene() == scene) {
+            scene->removeItem(bar);
+            delete bar;
+        }
+    }
+    
+    // Clear lists
     bossHealthBars.clear();
     playerHealthBars.clear();
+    
+    // Reset all pointers
+    bossHealthDisplay = nullptr;
+    playerHealthDisplay = nullptr;
+    sequenceDisplay = nullptr;
+    vsText = nullptr;
+    playerSprite = nullptr;
+    bossSprite = nullptr;
+    whipAttackSprite = nullptr;
+    backgroundOverlay = nullptr;
+    background = nullptr;
+    
+    // Reset state
+    isTransitioning = false;
+    currentSequenceIndex = 0;
 }
 
 void BossFight::playIntroAnimation()
@@ -387,18 +458,44 @@ void BossFight::transitionToState(BossState newState)
             break;
             
         case BossState::VICTORY:
-            createVisualFeedback("VICTORY!", Qt::green);
-            QTimer::singleShot(2000, this, [this]() {
-                emit victory();
-            });
-            break;
-            
         case BossState::DEFEAT:
-            createVisualFeedback("DEFEAT!", Qt::red);
-            QTimer::singleShot(2000, this, [this]() {
-                emit gameOver();
+            // Stop any ongoing animations or timers
+            if (currentAnimation) {
+                currentAnimation->stop();
+                delete currentAnimation;
+                currentAnimation = nullptr;
+            }
+            
+            // Clear sequences and indicators before transitioning
+            buttonSequence.clear();
+            clearSequenceIndicators();
+            
+            // Disable further input
+            isTransitioning = true;
+            
+            // Create a delayed cleanup to ensure all animations are complete
+            QTimer::singleShot(100, this, [this, newState]() {
+                // Stop all animations and effects
+                QList<QGraphicsItem*> items = scene->items();
+                for (QGraphicsItem* item : items) {
+                    if (QGraphicsObject* obj = item->toGraphicsObject()) {
+                        // Stop any animations on the object
+                        obj->setGraphicsEffect(nullptr);
+                    }
+                }
+                
+                cleanup();
+                
+                // Process any pending events before emitting signals
+                QApplication::processEvents();
+                
+                if (newState == BossState::VICTORY) {
+                    emit victory();
+                } else {
+                    emit gameOver();
+                }
             });
-            break;
+            return;
             
         default:
             break;
@@ -462,32 +559,43 @@ void BossFight::handleKeyPress(Qt::Key key)
             
             if (currentSequenceIndex <= sequenceIndicators.size()) {
                 auto pressedIndicator = sequenceIndicators[currentSequenceIndex - 1];
-                pressedIndicator->setDefaultTextColor(QColor(0, 255, 0));
-                pressedIndicator->setFont(QFont("Arial", 32, QFont::Bold));
-                
-                QPropertyAnimation *scaleAnim = new QPropertyAnimation(pressedIndicator, "scale");
-                scaleAnim->setDuration(200);
-                scaleAnim->setStartValue(1.2);
-                scaleAnim->setEndValue(1.0);
-                scaleAnim->start(QAbstractAnimation::DeleteWhenStopped);
+                if (pressedIndicator) {
+                    pressedIndicator->setDefaultTextColor(QColor(0, 255, 0));
+                    pressedIndicator->setFont(QFont("Arial", 32, QFont::Bold));
+                    
+                    QPropertyAnimation *scaleAnim = new QPropertyAnimation(pressedIndicator, "scale");
+                    scaleAnim->setDuration(200);
+                    scaleAnim->setStartValue(1.2);
+                    scaleAnim->setEndValue(1.0);
+                    scaleAnim->start(QAbstractAnimation::DeleteWhenStopped);
+                }
             }
             
             updateSequenceIndicators(currentSequenceIndex);
             
             if (currentSequenceIndex >= buttonSequence.size()) {
-                sequenceDisplay->setPlainText("Great job!");
-                sequenceDisplay->setDefaultTextColor(Qt::green);
+                if (sequenceDisplay) {
+                    sequenceDisplay->setPlainText("Great job!");
+                    sequenceDisplay->setDefaultTextColor(Qt::green);
+                }
                 QTimer::singleShot(500, this, &BossFight::onCorrectSequence);
             }
         } else {
             onWrongButton();
             
-            sequenceDisplay->setPlainText("Wrong button! Keep trying!");
-            sequenceDisplay->setDefaultTextColor(Qt::red);
-            QTimer::singleShot(1000, [this]() {
-                sequenceDisplay->setPlainText("Press the keys in sequence!");
-                sequenceDisplay->setDefaultTextColor(Qt::yellow);
-            });
+            if (sequenceDisplay) {
+                sequenceDisplay->setPlainText("Wrong button! Keep trying!");
+                sequenceDisplay->setDefaultTextColor(Qt::red);
+                
+                // Store a weak pointer to sequenceDisplay
+                QPointer<QGraphicsTextItem> weakDisplay = sequenceDisplay;
+                QTimer::singleShot(1000, this, [this, weakDisplay]() {
+                    if (!weakDisplay.isNull() && weakDisplay->scene()) {
+                        weakDisplay->setPlainText("Press the keys in sequence!");
+                        weakDisplay->setDefaultTextColor(Qt::yellow);
+                    }
+                });
+            }
         }
     }
 }
@@ -590,10 +698,23 @@ Level1Boss::Level1Boss(QGraphicsScene *scene, QObject *parent)
 
 void BossFight::setupCharacters()
 {
+    // Initialize sprite pointers first
+    playerSprite = new QGraphicsPixmapItem();
+    bossSprite = new QGraphicsPixmapItem();
+    
     // Load character sprites
     QPixmap playerPixmap(":/images/player_stance.png");
     QPixmap bossPixmap(":/images/boss_stance.png");
     
+    // Set the pixmaps
+    playerSprite->setPixmap(playerPixmap);
+    bossSprite->setPixmap(bossPixmap);
+    
+    // Add sprites to scene
+    scene->addItem(playerSprite);
+    scene->addItem(bossSprite);
+    
+    // Position the sprites
     playerSprite->setPos(250, 500);  // Left side, on ground
     bossSprite->setPos(650, 500);    // Right side, on ground
 
@@ -682,4 +803,16 @@ void BossFight::playAttackAnimation(bool isPlayerAttacking)
     });
     
     timeLine->start();
+}
+
+void BossFight::showVictoryScreen()
+{
+    // Simply emit the victory signal - the MainWindow will handle showing the victory screen
+    emit victory();
+}
+
+void BossFight::showGameOverScreen()
+{
+    // Simply emit the gameOver signal - the MainWindow will handle showing the game over screen
+    emit gameOver();
 }

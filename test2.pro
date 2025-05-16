@@ -12,30 +12,38 @@ SOURCES += \
     barrel.cpp \
     boss.cpp \
     bossfight.cpp \
+    fastbarrel.cpp \
+    gameoverscreen.cpp \
+    homingprojectile.cpp \
     ladder.cpp \
     main.cpp \
     mainwindow.cpp \
     platform.cpp \
     player.cpp \
     artifact.cpp \
-    retrybutton.cpp \
-    startmenu.cpp
+    startmenu.cpp \
+    victoryscreen.cpp
 
 HEADERS += \
     barrel.h \
     boss.h \
     bossfight.h \
+    fastbarrel.h \
+    gameoverscreen.h \
+    homingprojectile.h \
     ladder.h \
     mainwindow.h \
     platform.h \
     player.h \
     artifact.h \
-    retrybutton.h \
-    startmenu.h
+    startmenu.h \
+    victoryscreen.h
 
 FORMS += \
+    gameoverscreen.ui \
     mainwindow.ui \
-    startmenu.ui
+    startmenu.ui \
+    victoryscreen.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -128,11 +128,12 @@ void Barrel::updateState() {
 
 void Barrel::updatePlatformLevel() {
     int yPos = static_cast<int>(y());
-    if (yPos >= 90 && yPos < 130) currentPlatformY = 100;
-    else if (yPos >= 190 && yPos < 230) currentPlatformY = 200;
-    else if (yPos >= 290 && yPos < 330) currentPlatformY = 300;
-    else if (yPos >= 390 && yPos < 430) currentPlatformY = 400;
-    else if (yPos >= 490 && yPos < 530) currentPlatformY = 500;
+    if (yPos >= 155 && yPos < 195) currentPlatformY = 175;      // Top platform
+    else if (yPos >= 280 && yPos < 320) currentPlatformY = 300;  // Fourth platform
+    else if (yPos >= 405 && yPos < 445) currentPlatformY = 425;  // Third platform
+    else if (yPos >= 530 && yPos < 570) currentPlatformY = 550;  // Second platform
+    else if (yPos >= 655 && yPos < 695) currentPlatformY = 675;  // Bottom platform
+    else if (yPos >= 780 && yPos < 820) currentPlatformY = 800;  // Ground
     else currentPlatformY = -1;
 }
 
@@ -192,21 +193,55 @@ void Barrel::move() {
         // Move horizontally on platform
         setX(x() + dx);
 
-        // Check if barrel should fall or bounce
-        if (currentPlatformY == 100 || currentPlatformY == 300 || currentPlatformY == 500) {
-            // Odd-numbered platforms: move right, fall from right edge
-            if (dx > 0 && x() >= 780) {
-                falling = true;
-            } else if (dx < 0 && x() <= 200) {
-                dx = -dx; // Bounce from left edge
-            }
-        } else if (currentPlatformY == 200 || currentPlatformY == 400) {
-            // Even-numbered platforms: move left, fall from left edge
-            if (dx < 0 && x() <= 120) {
-                falling = true;
-            } else if (dx > 0 && x() >= 700) {
-                dx = -dx; // Bounce from right edge
-            }
+        // Check if barrel should fall or bounce based on platform level
+        switch (currentPlatformY) {
+            case 175: // Top platform
+                if (dx > 0 && x() >= 550) { // Fall on right side
+                    falling = true;
+                } else if (dx < 0 && x() <= 350) {
+                    dx = -dx; // Bounce on left side
+                }
+                break;
+                
+            case 300: // Fourth platform - Roll left to right
+                if (dx > 0 && x() >= 800) { // Fall on right side
+                    falling = true;
+                } else if (dx < 0 && x() <= 250) {
+                    dx = -dx; // Bounce on left side
+                }
+                break;
+                
+            case 425: // Third platform - Roll right to left
+                if (dx < 0 && x() <= 150) { // Fall on left side
+                    falling = true;
+                } else if (dx > 0 && x() >= 700) {
+                    dx = -dx; // Bounce on right side
+                }
+                break;
+                
+            case 550: // Second platform - Roll left to right
+                if (dx > 0 && x() >= 800) { // Fall on right side
+                    falling = true;
+                } else if (dx < 0 && x() <= 250) {
+                    dx = -dx; // Bounce on left side
+                }
+                break;
+                
+            case 675: // Bottom platform - Roll right to left
+                if (dx < 0 && x() <= 100) { // Fall on left side
+                    falling = true;
+                } else if (dx > 0 && x() >= 850) {
+                    dx = -dx; // Bounce on right side
+                }
+                break;
+                
+            case 800: // Ground - Roll to right and despawn
+                if (dx > 0 && x() >= 950) {
+                    scene()->removeItem(this);
+                    deleteLater();
+                    return;
+                }
+                break;
         }
     }
 

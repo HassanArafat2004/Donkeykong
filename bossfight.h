@@ -13,6 +13,8 @@
 #include <QGraphicsOpacityEffect>
 #include <QGraphicsPixmapItem>
 #include <QMovie>
+#include <QPushButton>
+#include <QGraphicsProxyWidget>
 
 class BossFight : public QObject
 {
@@ -41,6 +43,7 @@ signals:
     void healthChanged(int newHealth);
     void sequenceStarted();
     void sequenceCompleted(bool success);
+    void returnToMainMenu();
 
 protected:
     virtual void generateSequence();
@@ -53,8 +56,9 @@ protected:
 private slots:
     void startNextSequence();
     void playIntroAnimation();
-    void updateVisualFeedback(bool correct);
     void playAttackAnimation(bool isPlayerAttacking);
+    void showVictoryScreen();
+    void showGameOverScreen();
 
 private:
     QGraphicsScene *scene;
@@ -97,6 +101,8 @@ private:
     void setupCharacters();
     void createHealthBar(QGraphicsRectItem* &container, QList<QGraphicsRectItem*> &bars, 
                         const QPointF &pos, const QColor &color, bool isPlayer);
+    void createStylizedButton(QPushButton* button, const QString& text, 
+                            const QPoint& pos, const QSize& size);
 };
 
 class Level1Boss : public BossFight

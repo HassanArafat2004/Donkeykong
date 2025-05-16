@@ -27,5 +27,6 @@
         <file>images/arena.png</file>
         <file>images/boss_stance.png</file>
         <file>images/player_stance.png</file>
+        <file>images/fireball.png</file>
     </qresource>
 </RCC>
